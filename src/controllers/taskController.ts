@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { tasks } from "../models/taskModel";
+// import { tasks } from "../models/taskModel";
+import db from "../database/db";
 
 let nextId = 1;
 
@@ -10,57 +11,45 @@ function sanitizeNumber(num?: string) {
 
 export class TaskController {
   public getAll(req: Request, res: Response) {
+    const tasks = db.prepare("SELECT * from tasks").all();
     res.status(200).send(tasks);
   }
 
   public create(req: Request, res: Response) {
-    const newTask = {
-      ...req.body,
-      id: nextId++,
-    };
+    const { nome } = req.body;
 
-    tasks.push(newTask);
+    const stmt = db.prepare("INSERT INTO tasks (nome) VALUES (?)");
+    const result = stmt.run(nome);
 
-    res.send({ result: newTask, message: "Tarefa Inserida com sucesso" });
+    res.status(201).json({ id: result.lastInsertRowid, nome });
   }
 
   public update(req: Request, res: Response) {
-    const taskId = sanitizeNumber(req.params.id);
+    const { nome } = req.body;
+    const id = sanitizeNumber(req.params.id);
 
-    if (!taskId) {
+    const stmt = db.prepare("UPDATE tasks SET nome = ? WHERE id = ?");
+    const result = stmt.run(nome, id);
+
+    if (result.changes === 0) {
       res.status(404).json({ message: "Tarefa não encontrada" });
       return;
     }
 
-    const currentTaskIndex = tasks.findIndex((item) => item.id === taskId);
-
-    if (currentTaskIndex === -1) {
-      res.status(404).json({ message: "Tarefa não encontrada" });
-      return;
-    }
-
-    tasks[currentTaskIndex] = { id: taskId, ...req.body };
-
-    res.status(201).json(tasks);
+    res.status(201).json({ id, nome });
   }
 
   public delete(req: Request, res: Response) {
-    const taskId = sanitizeNumber(req.params.id);
+    const id = sanitizeNumber(req.params.id);
 
-    if (!taskId) {
+    const stmt = db.prepare("DELETE FROM tasks WHERE id = ?");
+    const result = stmt.run(id);
+
+    if (result.changes === 0) {
       res.status(404).json({ message: "Tarefa não encontrada" });
       return;
     }
 
-    const currentTaskIndex = tasks.findIndex((item) => item.id === taskId);
-
-    if (currentTaskIndex === -1) {
-      res.status(404).json({ message: "Tarefa não encontrada" });
-      return;
-    }
-
-    tasks.splice(currentTaskIndex, 1);
-
-    res.status(200).json(tasks);
+    res.status(200).json({ message: "Tarefa deletada" });
   }
 }
