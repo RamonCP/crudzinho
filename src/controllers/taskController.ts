@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
-// import { tasks } from "../models/taskModel";
 import db from "../database/db";
-
-let nextId = 1;
 
 function sanitizeNumber(num?: string) {
   const parsed = Number(num);
@@ -13,6 +10,25 @@ export class TaskController {
   public getAll(req: Request, res: Response) {
     const tasks = db.prepare("SELECT * from tasks").all();
     res.status(200).send(tasks);
+  }
+
+  public getById(req: Request, res: Response) {
+    const id = sanitizeNumber(req.params.id);
+
+    if (!id) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
+    const task = db.prepare("SELECT * from tasks WHERE id = ?").get(id);
+
+    if (!task) {
+      res.status(404).json({ message: "Tarefa não encontrada" });
+      return;
+    }
+
+    res.status(200).json(task);
+    return;
   }
 
   public create(req: Request, res: Response) {
@@ -28,6 +44,11 @@ export class TaskController {
     const { nome } = req.body;
     const id = sanitizeNumber(req.params.id);
 
+    if (!id) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
+
     const stmt = db.prepare("UPDATE tasks SET nome = ? WHERE id = ?");
     const result = stmt.run(nome, id);
 
@@ -41,6 +62,11 @@ export class TaskController {
 
   public delete(req: Request, res: Response) {
     const id = sanitizeNumber(req.params.id);
+
+    if (!id) {
+      res.status(400).json({ message: "ID inválido" });
+      return;
+    }
 
     const stmt = db.prepare("DELETE FROM tasks WHERE id = ?");
     const result = stmt.run(id);

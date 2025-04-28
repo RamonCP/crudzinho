@@ -6,6 +6,7 @@ const router = Router();
 const taskController = new TaskController();
 
 router.get("/tarefas", (req, res) => taskController.getAll(req, res));
+router.get("/tarefas/:id", (req, res) => taskController.getById(req, res));
 router.post("/tarefas", validateTaskBody, (req, res) =>
   taskController.create(req, res)
 );
