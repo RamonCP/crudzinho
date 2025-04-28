@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import db from "../database/db";
+import { messages } from "../utils/messages";
+import { AppError } from "../middlewares/errorHandler";
+import { successResponse } from "../utils/apiResponse";
 
 function sanitizeNumber(num?: string) {
   const parsed = Number(num);
@@ -16,19 +19,16 @@ export class TaskController {
     const id = sanitizeNumber(req.params.id);
 
     if (!id) {
-      res.status(400).json({ message: "ID inválido" });
-      return;
+      throw new AppError(messages.errors.invalidId, 400);
     }
 
     const task = db.prepare("SELECT * from tasks WHERE id = ?").get(id);
 
     if (!task) {
-      res.status(404).json({ message: "Tarefa não encontrada" });
-      return;
+      throw new AppError(messages.task.notFound, 404);
     }
 
-    res.status(200).json(task);
-    return;
+    res.status(200).send(successResponse(task));
   }
 
   public create(req: Request, res: Response) {
@@ -37,7 +37,14 @@ export class TaskController {
     const stmt = db.prepare("INSERT INTO tasks (nome) VALUES (?)");
     const result = stmt.run(nome);
 
-    res.status(201).json({ id: result.lastInsertRowid, nome });
+    res
+      .status(201)
+      .send(
+        successResponse(
+          { id: result.lastInsertRowid, nome },
+          messages.task.created
+        )
+      );
   }
 
   public update(req: Request, res: Response) {
@@ -45,37 +52,33 @@ export class TaskController {
     const id = sanitizeNumber(req.params.id);
 
     if (!id) {
-      res.status(400).json({ message: "ID inválido" });
-      return;
+      throw new AppError(messages.errors.invalidId, 400);
     }
 
     const stmt = db.prepare("UPDATE tasks SET nome = ? WHERE id = ?");
     const result = stmt.run(nome, id);
 
     if (result.changes === 0) {
-      res.status(404).json({ message: "Tarefa não encontrada" });
-      return;
+      throw new AppError(messages.task.notFound, 404);
     }
 
-    res.status(201).json({ id, nome });
+    res.status(201).send(successResponse({ id, nome }, messages.task.updated));
   }
 
   public delete(req: Request, res: Response) {
     const id = sanitizeNumber(req.params.id);
 
     if (!id) {
-      res.status(400).json({ message: "ID inválido" });
-      return;
+      throw new AppError(messages.errors.invalidId, 400);
     }
 
     const stmt = db.prepare("DELETE FROM tasks WHERE id = ?");
     const result = stmt.run(id);
 
     if (result.changes === 0) {
-      res.status(404).json({ message: "Tarefa não encontrada" });
-      return;
+      throw new AppError(messages.task.notFound, 404);
     }
 
-    res.status(200).json({ message: "Tarefa deletada" });
+    res.status(201).send(successResponse({}, messages.task.deleted));
   }
 }
