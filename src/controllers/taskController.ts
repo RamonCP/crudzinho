@@ -3,7 +3,6 @@ import db from "../database/db";
 import { messages } from "../utils/messages";
 import { AppError } from "../middlewares/errorHandler";
 import { successResponse } from "../utils/apiResponse";
-import { sanitizeNumber } from "../utils/sanitizeNumber";
 
 export class TaskController {
   public getAll(req: Request, res: Response) {
@@ -12,7 +11,7 @@ export class TaskController {
   }
 
   public getById(req: Request, res: Response) {
-    const id = sanitizeNumber(req.params.id);
+    const id = Number(req.params.id);
 
     const task = db.prepare("SELECT * from tasks WHERE id = ?").get(id);
 
@@ -41,7 +40,7 @@ export class TaskController {
 
   public update(req: Request, res: Response) {
     const { nome } = req.body;
-    const id = sanitizeNumber(req.params.id);
+    const id = Number(req.params.id);
 
     const stmt = db.prepare("UPDATE tasks SET nome = ? WHERE id = ?");
     const result = stmt.run(nome, id);
@@ -54,7 +53,7 @@ export class TaskController {
   }
 
   public delete(req: Request, res: Response) {
-    const id = sanitizeNumber(req.params.id);
+    const id = Number(req.params.id);
 
     const stmt = db.prepare("DELETE FROM tasks WHERE id = ?");
     const result = stmt.run(id);

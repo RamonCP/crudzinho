@@ -14,5 +14,7 @@ export function validateTaskId(
     throw new AppError(messages.errors.invalidId, 400);
   }
 
+  (req.params as any).id = id;
+
   next();
 }
