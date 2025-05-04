@@ -19,13 +19,13 @@ export class AuthController {
     });
 
     if (!user) {
-      throw new AppError("Crendenciais inválidas", 404);
+      throw new AppError("Crendenciais inválidas", 400);
     }
 
     const passwordMatched = await bcrypt.compare(password, user.password);
 
     if (!passwordMatched) {
-      throw new AppError("Crendenciais inválidas", 404);
+      throw new AppError("Crendenciais inválidas", 400);
     }
 
     const token = jwt.sign(

@@ -14,7 +14,7 @@ export class UserController {
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      res.status(200).send(successResponse({}, "E-mail já cadastrado"));
+      res.status(400).send(successResponse({}, "E-mail já cadastrado"));
     }
 
     const hashPassowrd = await bcrypt.hash(password, 10);
@@ -30,7 +30,7 @@ export class UserController {
       });
 
       res
-        .status(200)
+        .status(400)
         .send(successResponse({}, "Usuário cadastrado com sucesso"));
     } catch (err) {
       throw new AppError("Erro ao cadastrar usuário", 404);
@@ -59,7 +59,7 @@ export class UserController {
         .status(201)
         .send(successResponse({}, "Usuário  deletado com sucesso"));
     } catch (err) {
-      throw new AppError("Erro ao deletar usuário", 404);
+      throw new AppError("Erro ao deletar usuário", 500);
     }
   }
 }
