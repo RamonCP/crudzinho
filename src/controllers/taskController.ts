@@ -12,7 +12,7 @@ function sanitizeNumber(num?: string) {
 export class TaskController {
   public getAll(req: Request, res: Response) {
     const tasks = db.prepare("SELECT * from tasks").all();
-    res.status(200).send(tasks);
+    res.status(200).send(successResponse(tasks));
   }
 
   public getById(req: Request, res: Response) {
